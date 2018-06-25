@@ -1,0 +1,181 @@
+<html>
+  <head>
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <meta name="author" content="Alexander Lachmann">
+    <title>Charon</title>
+    
+    <link rel="icon" href="images/charon.png?v=3" type="image/png">
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script> 
+    <script src="js/jqueryform.js"></script> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+  </head>
+  <body style="padding: 50px;">
+    
+    <div style="width:450px; border: 1px; margin: auto;">
+    
+    <div class="card mb-4 box-shadow">
+        <div class="card-header">
+            <h4 class="my-0 font-weight-normal">Charon Upload</h4>
+        </div>
+        
+        <div class="card-body">
+            <div id="logininfo">
+                This is a demo page for the Charon file upload system. The implementation allows cryptographically managed file upload to 
+                predefined cloud repositories for users without accounts at cloud providers. Charon is a service working through APIs.<hr>
+                
+                <form id="userform">
+                    <label for="uname">Username</label>
+                    <input id="uname" type="text" name="username" value="" class="form-control" required><br>
+                    <label for="pass">Password</label>
+                    <input id="pass" type="password" name="password" value="" class="form-control" required>
+                </form>
+                <button type="button" id="loginbutton" class="btn btn-lg btn-block btn-outline-primary" onclick="login();">Login</button>
+            </div>
+            
+            <form id="dataform" action="x" method="POST" enctype="multipart/form-data">
+                <input id="uid" type="hidden" name="key" value="x">
+                <input id="cid" type="hidden" name="AWSAccessKeyId" value="x">
+                <input type="hidden" name="acl" value="private">
+                <input type="hidden" name="success_action_redirect" value="success.html">
+                <input id="policy" type="hidden" name="policy" value="x">
+                <input id="signature" type="hidden" name="signature" value="x">
+                <input type="hidden" name="Content-Type" value="application/octet-stream">
+                
+                <h2>File to upload to S3</h2>
+                <input name="file" type="file">
+                <br><br>
+                <button type="submit" id="loginbutton" class="btn btn-lg btn-block btn-outline-primary">Upload File</button>
+            </form>
+            
+            <div id="prbar" class="progress" style="height: 30px;">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+            
+            <hr>
+            
+            <div id="status"></div>
+            <div id="userfiles"></div>
+        </div>
+        
+        
+    </div>
+    </div>
+    
+  <script type="text/javascript">
+    
+    $("#dataform").toggle();
+    $("#prbar").toggle();
+    
+    function login(){
+        
+        username = $("#uname").val();
+        passwd = $("#pass").val();
+        
+        $.getJSON( "https://amp.pharm.mssm.edu/charon/login?username="+username+"&password="+passwd, function( data ) {
+            
+            if(data["status"] == "success"){
+                $("#dataform").toggle();
+                $("#logininfo").html("<h2>Logged in as "+username+"</h2>File uploads will be managed through user control to S3.<hr>");
+                checkFiles(username, passwd);
+                buildForm(username, passwd);
+            }
+            else{
+                $('#status').html("<font style=\"color: red;\">Login failed</font>");
+            }
+        });
+    }
+    
+    function buildForm(username, passwd){
+        
+        $.getJSON( "https://amp.pharm.mssm.edu/charon/signpolicy?username="+username+"&password="+passwd, function( data ) {
+          
+          var items = [];
+          
+          $.each( data, function( key, val ) {
+            items.push( "<li id='" + key + "'>" + val + "</li>" );
+            
+            if(key == "uid"){
+                $('#uid').val(val+"/${filename}");
+            }
+            else if(key == "cid"){
+                $('#cid').val(val);
+            }
+            else if(key == "bucket"){
+                $('#dataform').attr("action", "https://"+val+".s3.amazonaws.com/");
+            }
+            else if(key == "policy"){
+                $('#policy').val(val);
+            }
+            else if(key == "signature"){
+                $('#signature').val(val);
+            }
+          });
+          
+          $( "<ul/>", {
+            "class": "my-new-list",
+            html: items.join( "" )
+          }).appendTo( "body" );
+          
+          var bar = $('.bar');
+          var percent = $('.progress-bar');
+          var status = $('#status');
+          
+          $('#dataform').ajaxForm({
+              beforeSend: function() {
+                  status.empty();
+                  var percentVal = '0%';
+                  bar.width(percentVal);
+                  percent.html(percentVal);
+                  $("#dataform").toggle();
+                  $("#prbar").toggle();
+              },
+              uploadProgress: function(event, position, total, percentComplete) {
+                  var percentVal = percentComplete + '%';
+                  bar.width(percentVal);
+                  percent.html(percentVal);
+                  percent.attr("aria-valuenow", percentComplete);
+                  percent.css("width", percentVal);
+              },
+              complete: function(xhr) {
+                  status.html(xhr.responseText);
+                  $("#dataform").toggle();
+                  $("#prbar").toggle();
+                  checkFiles(username, passwd);
+              }
+          });
+          
+        });
+    }
+    
+    function checkFiles(username, passwd){
+        $.getJSON( "https://amp.pharm.mssm.edu/charon/files?username="+username+"&password="+passwd, function( data ) {
+            var fileStr = "";
+            filename = data["filenames"];
+            filesize = data["filesize"];
+            
+            for(i=0; i<filename.length; i++){
+                fileStr += filename[i]+" <span style=\"float:right;\"><font color=\"grey\">"+filesize[i]+"</font></span><br>";
+            }
+            
+            fileStr += 
+            $("#userfiles").html(fileStr);
+        });
+    }
+    
+  </script>
+  
+  </body>
+</html>
+
+
+
+

@@ -1,0 +1,107 @@
+<html>
+  <head>
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <meta name="author" content="Alexander Lachmann">
+    <title>Charon</title>
+    
+    <link rel="icon" href="images/charon.png?v=3" type="image/png">
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script> 
+    <script src="js/jqueryform.js"></script> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    
+    <script type="text/javascript">
+        function newprofile(){
+            
+            if($("#password").val() == $("#password2").val()){
+                
+                firstname = $("#firstname").val();
+                lastname = $("#lastname").val();
+                username = $("#username").val();
+                password = $("#password").val();
+                email = $("#email").val();
+                invitation = $("#invite").val();
+                alert("https://amp.pharm.mssm.edu/charon/createuser?firstname="+firstname+"&lastname="+lastname+"&email="+email+"&invitationKey="+invitation+"&username="+username+"&password="+password);
+                $.getJSON("https://amp.pharm.mssm.edu/charon/createuser?firstname="+firstname+"&lastname="+lastname+"&email="+email+"&invitationKey="+invitation+"&username="+username+"&password="+password, function( data ) {
+                    alert(data);
+                    if(data["status"] == "success"){
+                        window.location.href = "https://amp.pharm.mssm.edu/charon/index.html";
+                    }
+                    else{
+                        alert("Failed to create user profile.");
+                    }
+                });
+            }
+            else{
+                alert("Passwords don't match");
+            }
+        }
+    </script>
+    
+  </head>
+  <body style="padding: 50px;">
+
+
+<form action="javascript:void">
+<h1> Create Charon User Profile</h1>
+<hr>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="firstname">Firstname</label>
+      <input type="text" class="form-control" id="firstname" placeholder="Firstname">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="lastname">Lastname</label>
+      <input type="text" class="form-control" id="lastname" placeholder="Lastname">
+    </div>
+  </div>
+  
+  <div class="form-row">
+     <div class="form-group col-md-6">
+      <label for="username">Username</label>
+      <input type="text" class="form-control" id="username" placeholder="Username">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="email">Email</label>
+      <input type="text" class="form-control" id="email" placeholder="Email">
+    </div>
+  </div>
+  
+  <hr>
+  
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      <label for="invite">Invitation String</label>
+      <input type="text" class="form-control" id="invite" placeholder="Invitation Code">
+    </div>
+    <div class="form-group col-md-6">
+      <label for="password">Password</label>
+      <input type="password" class="form-control" id="password" placeholder="Password">
+    </div>
+  </div>
+  <div class="form-row">
+    <div class="form-group col-md-6">
+      
+    </div>
+    <div class="form-group col-md-6">
+      <label for="password2">Validate Password</label>
+      <input type="password" class="form-control" id="password2" placeholder="Validate Password">
+    </div>
+  </div>
+  <hr>
+
+  </div>
+  <button class="btn btn-primary" onclick="newprofile();">Create Profile</button>
+</form>
+
+  </body>
+</html>
+
+
