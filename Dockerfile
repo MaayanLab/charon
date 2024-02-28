@@ -1,25 +1,31 @@
-FROM ubuntu
+FROM ubuntu:22.04
 
-MAINTAINER Alexander Lachmann <alexander.lachmann@mssm.edu>
+LABEL maintainer="Alexander Lachmann <alexander.lachmann@mssm.edu>"
 
-# Python installs
 RUN apt-get update && apt-get install -y \
-    python \
-    python-dev \
-    python-pip \
-    python-setuptools \
-    libmysqlclient-dev
+    python3 \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    libmysqlclient-dev \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    pkg-config
+    
+RUN pip3 install --upgrade pip 
+RUN pip3 install --upgrade pip setuptools
+RUN pip3 install tornado
+RUN pip3 install pymysql
+RUN pip3 install mysqlclient
+RUN pip3 install requests
+RUN pip3 install python-dateutil
+RUN pip3 install boto3
+RUN pip3 install python-dotenv
 
-# pip installs
-RUN pip install --upgrade pip
-RUN pip install tornado
-RUN pip install MySQL-python
-RUN pip install requests
-RUN pip install python-dateutil --upgrade
-RUN pip install boto
+RUN rm -rf /var/lib/apt/lists/* # Clean up to reduce image size
 
 WORKDIR /usr/local/src
-
 RUN mkdir -p /app/tornado/data
 COPY . /app/tornado
 
@@ -27,5 +33,9 @@ EXPOSE 5000
 
 WORKDIR /app/tornado
 
-RUN chmod -R 777 /app/tornado
-ENTRYPOINT ./entrypoint.sh
+RUN groupadd -r myappgroup && useradd -r -g myappgroup myappuser
+USER myappuser
+
+RUN python3 --version
+
+ENTRYPOINT ["python3", "maintornado.py"]

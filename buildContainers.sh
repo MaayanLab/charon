@@ -6,6 +6,7 @@ docker kill charon
 docker rm charon
 
 
-docker build -f Dockerfile -t maayanlab/charon .
+docker build --platform="linux/amd64" -f Dockerfile -t maayanlab/charon:2.7 .
 
-docker push maayanlab/charon
+#docker run -p 5000:5000 -it maayanlab/charon:2.1
+docker push maayanlab/charon:2.7
